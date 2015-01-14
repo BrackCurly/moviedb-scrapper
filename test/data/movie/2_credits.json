@@ -1,0 +1,91 @@
+{
+  "id": 2,
+  "cast": [
+    {
+      "cast_id": 3,
+      "character": "Taisto Olavi Kasurinen",
+      "credit_id": "52fe420dc3a36847f8000029",
+      "id": 54768,
+      "name": "Turo Pajala",
+      "order": 0,
+      "profile_path": null
+    },
+    {
+      "cast_id": 4,
+      "character": "Irmeli Katariina Pihlaja",
+      "credit_id": "52fe420dc3a36847f800002d",
+      "id": 54769,
+      "name": "Susanna Haavisto",
+      "order": 1,
+      "profile_path": null
+    },
+    {
+      "cast_id": 5,
+      "character": "Mikkonen",
+      "credit_id": "52fe420dc3a36847f8000031",
+      "id": 4826,
+      "name": "Matti Pellonpää",
+      "order": 2,
+      "profile_path": null
+    },
+    {
+      "cast_id": 6,
+      "character": "Riku",
+      "credit_id": "52fe420dc3a36847f8000035",
+      "id": 54770,
+      "name": "Eetu Hilkamo",
+      "order": 3,
+      "profile_path": null
+    }
+  ],
+  "crew": [
+    {
+      "credit_id": "52fe420dc3a36847f800001f",
+      "department": "Writing",
+      "id": 16767,
+      "job": "Screenplay",
+      "name": "Aki Kaurismäki",
+      "profile_path": "/jo2NeVWFvRxj941LBBB9pLN89H.jpg"
+    },
+    {
+      "credit_id": "52fe420dc3a36847f8000025",
+      "department": "Directing",
+      "id": 16767,
+      "job": "Director",
+      "name": "Aki Kaurismäki",
+      "profile_path": "/jo2NeVWFvRxj941LBBB9pLN89H.jpg"
+    },
+    {
+      "credit_id": "52fe420dc3a36847f800003b",
+      "department": "Camera",
+      "id": 16769,
+      "job": "Director of Photography",
+      "name": "Timo Salminen",
+      "profile_path": null
+    },
+    {
+      "credit_id": "52fe420dc3a36847f8000041",
+      "department": "Editing",
+      "id": 54766,
+      "job": "Editor",
+      "name": "Raija Talvio",
+      "profile_path": null
+    },
+    {
+      "credit_id": "52fe420dc3a36847f8000047",
+      "department": "Art",
+      "id": 53836,
+      "job": "Production Design",
+      "name": "Risto Karhula",
+      "profile_path": null
+    },
+    {
+      "credit_id": "52fe420dc3a36847f800004d",
+      "department": "Costume & Make-Up",
+      "id": 54771,
+      "job": "Costume Design",
+      "name": "Tuula Hilkamo",
+      "profile_path": null
+    }
+  ]
+}
