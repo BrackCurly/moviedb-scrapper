@@ -2,6 +2,7 @@
   (:require [clojurewerkz.neocons.rest :as nr]
             [clojurewerkz.neocons.rest.nodes :as nn]
             [clojurewerkz.neocons.rest.labels :as nl]
+            [clojurewerkz.neocons.rest.constraints :as nc]
             [clj-time.format :as format]
             [clj-time.coerce :as coerce]))
 
@@ -25,6 +26,20 @@
   (->> props
    (remove (fn [[_ v]] (nil? v)))
    (into {})))
+
+(defn constrain? [label property]
+  (let [constraints (nc/get-all conn label)]
+    (some #(= property
+              (-> % :property_keys first keyword)) constraints)))
+
+(defn create-constraint [label property]
+  (if-not (constrain? label property)
+    (nc/create-unique conn label property)))
+
+(defn create-constraints []
+  (create-constraint :Movie :mdb_id)
+  (create-constraint :Person :mdb_id)
+  (create-constraint :Company :mdb_id))
 
 (defn create-movie [data]
   (let [props (clean-map {:adult (:adult data)

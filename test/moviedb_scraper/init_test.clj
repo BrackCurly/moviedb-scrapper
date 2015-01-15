@@ -2,8 +2,23 @@
   (:require [cheshire.core :as json]
             [clojurewerkz.neocons.rest.nodes :as nn]
             [clojurewerkz.neocons.rest.labels :as nl]
+            [clojurewerkz.neocons.rest.constraints :as nc]
             [clojure.test :refer :all]
             [moviedb-scraper.init :refer :all]))
+
+(defn drop-constraints []
+  (for [{[property] :property_keys label :label} (nc/get-all conn)]
+    (nc/drop-unique conn label property)))
+
+(deftest create-constraints-test
+  (drop-constraints)
+  (testing "create constraints"
+    (create-constraints)
+    (= (nc/get-all conn)
+       ({:property_keys ["mdb_id"], :label :Person, :type "UNIQUENESS"} {:property_keys ["mdb_id"], :label :Movie, :type "UNIQUENESS"} {:property_keys ["mdb_id"], :label :Company, :type "UNIQUENESS"})))
+  (testing "create no constraints if constraint exists already"
+    (create-constraints))
+  (drop-constraints))
 
 (deftest create-movie-test
   (let [data (-> "test/data/movie/2.json" slurp (json/parse-string true))
@@ -29,7 +44,6 @@
       (is (= (:vote_count props) 5)))
     (testing "set :Movie label"
       (is (= (nl/get-all-labels conn node) [:Movie])))
-
     (nn/destroy conn node)))
 
 (deftest create-person-test
@@ -49,7 +63,6 @@
       (is (= (:profile_path props) nil)))
     (testing "set :Person label"
       (is (= (nl/get-all-labels conn node) [:Person])))
-
     (nn/destroy conn node)))
 
 (deftest create-company-test
@@ -64,5 +77,4 @@
       (is (= (:name props) "Lucasfilm")))
     (testing "set :Company label"
       (is (= (nl/get-all-labels conn node) [:Company])))
-
     (nn/destroy conn node)))
