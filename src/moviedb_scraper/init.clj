@@ -12,26 +12,57 @@
       (format/parse (format/formatters :year-month-day ))
       (coerce/to-long)))
 
+(defn- date-field [s]
+  (if (and (not= s "") (not (nil? s)))
+    (parse-date s)))
+
+(defn- collection-field [xs]
+  (if (empty? xs)
+    nil
+    xs))
+
+(defn- clean-map [props]
+  (->> props
+   (remove (fn [[_ v]] (nil? v)))
+   (into {})))
+
 (defn create-movie [data]
-  (let [node (nn/create conn {:adult (:adult data)
-                           :backdrop_path (:backdrop_path data)
-                           :budget (:budget data)
-                           :homepage (:homepage data)
-                           :original_language (:original_language data)
-                           :original_title (:original_title data)
-                           :mdb_id (:id data)
-                           :imdb_id (:imdb_id data)
-                           :overview (:overview data)
-                           :popularity (:popularity data)
-                           :poster_path (:poster_path data)
-                           :release_date (if-let [release-date (:release_date data)]
-                                           (parse-date release-date))
-                           :revenue (:revenue data)
-                           :runtime (:runtime data)
-                           :status (:status data)
-                           :tagline (:tagline data)
-                           :title (:title data)
-                           :vote_average (:vote_average data)
-                           :vote_count (:vote_count data)})]
+  (let [props (clean-map {:adult (:adult data)
+                          :backdrop_path (:backdrop_path data)
+                          :budget (:budget data)
+                          :homepage (:homepage data)
+                          :original_language (:original_language data)
+                          :original_title (:original_title data)
+                          :mdb_id (:id data)
+                          :imdb_id (:imdb_id data)
+                          :overview (:overview data)
+                          :popularity (:popularity data)
+                          :poster_path (:poster_path data)
+                          :release_date (-> data :release_date date-field)
+                          :revenue (:revenue data)
+                          :runtime (:runtime data)
+                          :status (:status data)
+                          :tagline (:tagline data)
+                          :title (:title data)
+                          :vote_average (:vote_average data)
+                          :vote_count (:vote_count data)})
+        node (nn/create conn props)]
       (nl/add conn node :Movie)
       node))
+
+(defn create-person [data]
+  (let [props (clean-map {:adult (:adult data)
+                          :alias (-> data :also_known_as collection-field)
+                          :biography (:biography data)
+                          :birthday (-> data :birthday date-field)
+                          :deathday (-> data :deathday date-field)
+                          :homepage (:homepage data)
+                          :mdb_id (:id data)
+                          :imdb_id (:imdb_id data)
+                          :name (:name data)
+                          :place_of_birth (:place_of_birth data)
+                          :popularity (:popularity data)
+                          :profile_path (:profile_path data)})
+        node (nn/create conn props)]
+    (nl/add conn node :Person)
+    node))

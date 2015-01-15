@@ -28,3 +28,21 @@
       (is (= (:vote_count props) 5)))
     (testing "set :Movie label"
       (is (= (nl/get-all-labels conn node) [:Movie])))))
+
+(deftest create-person-test
+  (let [data (-> "test/data/person/4826.json" slurp (json/parse-string true))
+        {props :data :as node} (create-person data)]
+    (testing "set node properties"
+      (is (= (:adult props) false))
+      (is (= (:alias props) nil))
+      (is (= (:biography props) "From Wikipedia, the free encyclopedia\n\nMatti Pellonpää (28 March 1951 in Helsinki – 13 July 1995 in Vaasa) was an award-winning Finnish actor and a musician. He rose to international fame with his roles in both Aki Kaurismäki's and Mika Kaurismäki's films; particularly being a regular in Aki's films, appearing in 18 of them.\n\nHe started his career in 1962 as a radio actor at the Finnish state-owned broadcasting company YLE. He performed as an actor during the 70s in many amateur theatres, at the same time that he studied at the Finnish Theatre Academy, where he completed his studies in the year 1977.\n\nHe was nominated Best Actor by European Film Academy for his role as Rodolfo in La Vie de Boheme and won the Felix at the European Film Awards in 1992. He also starred in Jim Jarmusch's 1991 film Night on Earth.\n\nDescription above from the Wikipedia article Matti Pellonpää, licensed under CC-BY-SA, full list of contributors on Wikipedia." ))
+      (is (= (:birthday props) -592185600000))
+      (is (= (:deathday props) 805593600000))
+      (is (= (:homepage props) ""))
+      (is (= (:mdb_id props) 4826))
+      (is (= (:name props) "Matti Pellonpää"))
+      (is (= (:place_of_birth props) "Helsinki, Finland"))
+      (is (= (:popularity props) 2.23756143185208e-32))
+      (is (= (:profile_path props) nil)))
+    (testing "set :Person label"
+      (is (= (nl/get-all-labels conn node) [:Person])))))
