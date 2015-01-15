@@ -3,25 +3,24 @@
             [clojurewerkz.neocons.rest.nodes :as nn]
             [clojurewerkz.neocons.rest.labels :as nl]
             [clojurewerkz.neocons.rest.constraints :as nc]
+            [clojurewerkz.neocons.rest.index :as ni]
             [clojure.test :refer :all]
             [moviedb-scraper.init :refer :all]))
 
-(defn drop-constraints []
-  (for [{[property] :property_keys label :label} (nc/get-all conn)]
-    (nc/drop-unique conn label property)))
-
-(deftest create-constraints-test
-  (drop-constraints)
-  (testing "create constraints"
-    (create-constraints)
-    (= (nc/get-all conn)
-       '({:property_keys ["mdb_id"], :label :Person, :type "UNIQUENESS"}
-         {:property_keys ["mdb_id"], :label :Movie, :type "UNIQUENESS"}
-         {:property_keys ["mdb_id"], :label :Company, :type "UNIQUENESS"}
-         {:property_keys ["mdb_id"], :label :Keyword, :type "UNIQUENESS"})))
-  (testing "create no constraints if constraint exists already"
-    (create-constraints))
-  (drop-constraints))
+(deftest create-node-test
+  (let [n1 (create-node "Person" {:mdb_id 666 :name "Peter"})
+        n2 (create-node "Person" {:mdb_id 666 :name "Carl"})
+        n3 (create-node "Person" {:mdb_id 661 :name "Georg"})]
+    (testing "create node if there isn't another node with the same id"
+      (is (= (-> n1 :data :name) "Peter")))
+    (testing "if there is another node with the same id return existing node"
+      (is (= (-> n2 :data :name) "Peter")))
+    (testing "create another node if the id differs"
+      (is (= (-> n3 :data :name) "Georg")))
+    (testing "throw error if mdb_id is not defined"
+      (is (thrown? Exception (create-node "Person" {}))))
+    (nn/destroy conn n1)
+    (nn/destroy conn n3)))
 
 (deftest create-movie-test
   (let [data (-> "test/data/movie/2.json" slurp (json/parse-string true))
