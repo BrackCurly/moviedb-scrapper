@@ -15,7 +15,10 @@
   (testing "create constraints"
     (create-constraints)
     (= (nc/get-all conn)
-       ({:property_keys ["mdb_id"], :label :Person, :type "UNIQUENESS"} {:property_keys ["mdb_id"], :label :Movie, :type "UNIQUENESS"} {:property_keys ["mdb_id"], :label :Company, :type "UNIQUENESS"})))
+       '({:property_keys ["mdb_id"], :label :Person, :type "UNIQUENESS"}
+         {:property_keys ["mdb_id"], :label :Movie, :type "UNIQUENESS"}
+         {:property_keys ["mdb_id"], :label :Company, :type "UNIQUENESS"}
+         {:property_keys ["mdb_id"], :label :Keyword, :type "UNIQUENESS"})))
   (testing "create no constraints if constraint exists already"
     (create-constraints))
   (drop-constraints))

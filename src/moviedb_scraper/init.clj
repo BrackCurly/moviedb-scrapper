@@ -39,7 +39,8 @@
 (defn create-constraints []
   (create-constraint :Movie :mdb_id)
   (create-constraint :Person :mdb_id)
-  (create-constraint :Company :mdb_id))
+  (create-constraint :Company :mdb_id)
+  (create-constraint :Keyword :mdb_id))
 
 (defn create-movie [data]
   (let [props (clean-map {:adult (:adult data)
