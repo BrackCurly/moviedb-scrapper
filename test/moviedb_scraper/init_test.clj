@@ -78,3 +78,13 @@
     (testing "set :Company label"
       (is (= (nl/get-all-labels conn node) [:Company])))
     (nn/destroy conn node)))
+
+(deftest create-keyword-test
+  (let [data {:id 1721 :name "fight"}
+        {props :data :as node} (create-keyword data)]
+    (testing "set node properties"
+      (is (= (:mdb_id props) 1721))
+      (is (= (:name props) "fight")))
+    (testing "set :Keyword label"
+      (is (= (nl/get-all-labels conn node) [:Keyword])))
+    (nn/destroy conn node)))

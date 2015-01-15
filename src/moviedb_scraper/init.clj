@@ -92,3 +92,10 @@
         node (nn/create conn props)]
     (nl/add conn node :Company)
     node))
+
+(defn create-keyword [data]
+  (let [props (clean-map {:name (:name data)
+                          :mdb_id (:id data)})
+        node (nn/create conn props)]
+    (nl/add conn node :Keyword)
+    node))
