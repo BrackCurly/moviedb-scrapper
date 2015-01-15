@@ -46,3 +46,16 @@
       (is (= (:profile_path props) nil)))
     (testing "set :Person label"
       (is (= (nl/get-all-labels conn node) [:Person])))))
+
+(deftest create-company-test
+  (let [data (-> "test/data/company/1.json" slurp (json/parse-string true))
+        {props :data :as node} (create-company data)]
+    (testing "set node properties"
+      (is (= (:description props) nil))
+      (is (= (:headquarters props) "San Francisco, California"))
+      (is (= (:homepage props) "http://www.lucasfilm.com"))
+      (is (= (:mdb_id props) 1))
+      (is (= (:logo_path props) "/8rUnVMVZjlmQsJ45UGotD0Uznxj.png"))
+      (is (= (:name props) "Lucasfilm")))
+    (testing "set :Company label"
+      (is (= (nl/get-all-labels conn node) [:Company])))))

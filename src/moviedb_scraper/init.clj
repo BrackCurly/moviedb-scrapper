@@ -66,3 +66,14 @@
         node (nn/create conn props)]
     (nl/add conn node :Person)
     node))
+
+(defn create-company [data]
+  (let [props (clean-map {:description (:description data)
+                          :headquarters (:headquarters data)
+                          :homepage (:homepage data)
+                          :mdb_id (:id data)
+                          :logo_path (:logo_path data)
+                          :name (:name data)})
+        node (nn/create conn props)]
+    (nl/add conn node :Company)
+    node))
