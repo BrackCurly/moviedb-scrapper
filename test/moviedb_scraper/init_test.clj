@@ -1,5 +1,6 @@
 (ns moviedb-scraper.init-test
   (:require [cheshire.core :as json]
+            [clojurewerkz.neocons.rest.nodes :as nn]
             [clojurewerkz.neocons.rest.labels :as nl]
             [clojure.test :refer :all]
             [moviedb-scraper.init :refer :all]))
@@ -27,7 +28,9 @@
       (is (= (:vote_average props) 6.5))
       (is (= (:vote_count props) 5)))
     (testing "set :Movie label"
-      (is (= (nl/get-all-labels conn node) [:Movie])))))
+      (is (= (nl/get-all-labels conn node) [:Movie])))
+
+    (nn/destroy conn node)))
 
 (deftest create-person-test
   (let [data (-> "test/data/person/4826.json" slurp (json/parse-string true))
@@ -45,7 +48,9 @@
       (is (= (:popularity props) 2.23756143185208e-32))
       (is (= (:profile_path props) nil)))
     (testing "set :Person label"
-      (is (= (nl/get-all-labels conn node) [:Person])))))
+      (is (= (nl/get-all-labels conn node) [:Person])))
+
+    (nn/destroy conn node)))
 
 (deftest create-company-test
   (let [data (-> "test/data/company/1.json" slurp (json/parse-string true))
@@ -58,4 +63,6 @@
       (is (= (:logo_path props) "/8rUnVMVZjlmQsJ45UGotD0Uznxj.png"))
       (is (= (:name props) "Lucasfilm")))
     (testing "set :Company label"
-      (is (= (nl/get-all-labels conn node) [:Company])))))
+      (is (= (nl/get-all-labels conn node) [:Company])))
+
+    (nn/destroy conn node)))
