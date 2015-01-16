@@ -118,3 +118,34 @@
         (create-rels movie-node language-nodes :LANGUAGE_SPOKEN)
         (create-rels movie-node genre-nodes :HAS_GENRE)
         movie-node))
+
+(defn- connect-actor [movie actor data]
+  (let [props (-> data
+                  (select-keys [:order :character])
+                  clean-map)]
+    (nrl/create conn actor movie :ACTS_IN  props)))
+
+(defn- department-connection-type [department]
+  (case department
+    "Writing" :WRITES
+    "Directing" :DIRECTS
+    "Camera" :DOES_CAMERA_WORK
+    "Editing" :DOES_EDITING
+    "Art" :DOES_ART
+    "Costume & Make-Up" :DOES_COSTUMES
+    "Production" :PRODUCES
+    "Sound" :DOES_SOUND
+    "Visual Effects" :DOES_VISUAL_EFFECTS
+    "Crew" :SUPPORTS))
+
+(defn- connect-crew-member [movie person data]
+  (let [props (-> data
+                  (select-keys [:job])
+                  clean-map)]
+    (nrl/create conn person movie (department-connection-type (:department data)) props)))
+
+(defn add-credits [movie {:keys [cast crew]}]
+  (let [cast-nodes (doall (map create-person cast))
+        crew-nodes (doall (map create-person crew))]
+    (dorun (map (partial connect-actor movie) cast-nodes cast))
+    (dorun (map (partial connect-crew-member movie) crew-nodes crew))))
