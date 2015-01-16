@@ -2,10 +2,22 @@
   (:require [cheshire.core :as json]
             [clojurewerkz.neocons.rest.nodes :as nn]
             [clojurewerkz.neocons.rest.labels :as nl]
-            [clojurewerkz.neocons.rest.constraints :as nc]
-            [clojurewerkz.neocons.rest.index :as ni]
+            [clojurewerkz.neocons.rest.relationships :as nrl]
+            [clojurewerkz.neocons.rest.cypher :as cy]
             [clojure.test :refer :all]
             [moviedb-scraper.init :refer :all]))
+
+(defn destroy-graph []
+  (cy/tquery conn "MATCH (n)<-[r]->(x) DELETE r, x")
+  (cy/tquery conn "MATCH (n) DELETE n"))
+
+(destroy-graph)
+
+(defn clean-db [f]
+  (f)
+  (destroy-graph))
+
+(use-fixtures :each clean-db)
 
 (deftest create-node-test
   (let [n1 (create-node "Person" {:mdb_id 666 :name "Peter"})
@@ -18,9 +30,7 @@
     (testing "create another node if the id differs"
       (is (= (-> n3 :data :name) "Georg")))
     (testing "throw error if mdb_id is not defined"
-      (is (thrown? Exception (create-node "Person" {}))))
-    (nn/destroy conn n1)
-    (nn/destroy conn n3)))
+      (is (thrown? Exception (create-node "Person" {}))))))
 
 (deftest create-movie-test
   (let [data (-> "test/data/movie/2.json" slurp (json/parse-string true))
@@ -45,8 +55,7 @@
       (is (= (:vote_average props) 6.5))
       (is (= (:vote_count props) 5)))
     (testing "set :Movie label"
-      (is (= (nl/get-all-labels conn node) [:Movie])))
-    (nn/destroy conn node)))
+      (is (= (nl/get-all-labels conn node) [:Movie])))))
 
 (deftest create-person-test
   (let [data (-> "test/data/person/4826.json" slurp (json/parse-string true))
@@ -64,8 +73,7 @@
       (is (= (:popularity props) 2.23756143185208e-32))
       (is (= (:profile_path props) nil)))
     (testing "set :Person label"
-      (is (= (nl/get-all-labels conn node) [:Person])))
-    (nn/destroy conn node)))
+      (is (= (nl/get-all-labels conn node) [:Person])))))
 
 (deftest create-company-test
   (let [data (-> "test/data/company/1.json" slurp (json/parse-string true))
@@ -78,8 +86,7 @@
       (is (= (:logo_path props) "/8rUnVMVZjlmQsJ45UGotD0Uznxj.png"))
       (is (= (:name props) "Lucasfilm")))
     (testing "set :Company label"
-      (is (= (nl/get-all-labels conn node) [:Company])))
-    (nn/destroy conn node)))
+      (is (= (nl/get-all-labels conn node) [:Company])))))
 
 (deftest create-keyword-test
   (let [data {:id 1721 :name "fight"}
@@ -88,5 +95,65 @@
       (is (= (:mdb_id props) 1721))
       (is (= (:name props) "fight")))
     (testing "set :Keyword label"
-      (is (= (nl/get-all-labels conn node) [:Keyword])))
-    (nn/destroy conn node)))
+      (is (= (nl/get-all-labels conn node) [:Keyword])))))
+
+(deftest create-language-test
+  (let [data {:iso_639_1 "de" :name "Deutsch"}
+        {props :data :as node} (create-language data)]
+    (testing "set node properties"
+      (is (= (:mdb_id props) "de"))
+      (is (= (:name props) "Deutsch")))
+    (testing "set :Language label"
+      (is (= (nl/get-all-labels conn node) [:Language])))))
+
+(deftest create-country-test
+  (let [data {:iso_3166_1 "FI" :name "Finland"}
+        {props :data :as node} (create-country data)]
+    (testing "set node properties"
+      (is (= (:mdb_id props) "FI"))
+      (is (= (:name props) "Finland")))
+    (testing "set :Country label"
+      (is (= (nl/get-all-labels conn node) [:Country])))))
+
+(deftest create-genre-test
+  (let [data {:id "18" :name "Drama"}
+        {props :data :as node} (create-genre data)]
+    (testing "set node properties"
+      (is (= (:mdb_id props) "18"))
+      (is (= (:name props) "Drama")))
+    (testing "set :Country label"
+      (is (= (nl/get-all-labels conn node) [:Genre])))))
+
+
+(defn- get-node-names [pos rels]
+  (map (fn [rel]
+         (->> (get rel pos)
+              (nn/fetch-from conn)
+              :data :name)) rels))
+
+(deftest add-movie-test
+  (let [data (-> "test/data/movie/2.json" slurp (json/parse-string true))
+        movie (add-movie data)]
+    (testing "create companies with relations"
+      (let [produces-rels (nrl/incoming-for conn movie :types [:PRODUCES])
+            companies (get-node-names :start produces-rels)]
+        (is (= (count produces-rels) 2))
+        (is (= companies ["Villealfa Filmproduction Oy"
+                          "Finnish Film Foundation"]))))
+    (testing "create genres with relations"
+      (let [has-genre-rels (nrl/outgoing-for conn movie :types [:HAS_GENRE])
+            genres (get-node-names :end has-genre-rels)]
+        (is (= (count has-genre-rels) 2))
+        (is (= genres ["Drama"
+                       "Foreign"]))))
+    (testing "create languages with relations"
+      (let [language-spoken-rels (nrl/outgoing-for conn movie :types [:LANGUAGE_SPOKEN])
+            languages (get-node-names :end language-spoken-rels)]
+        (is (= (count language-spoken-rels) 2))
+        (is (= languages ["Deutsch"
+                          "suomi"]))))
+    (testing "create countries with relations"
+      (let [produced-in-rels (nrl/outgoing-for conn movie :types [:PRODUCED_IN])
+            countries (get-node-names :end produced-in-rels)]
+        (is (= (count produced-in-rels) 1))
+        (is (= countries ["Finland"]))))))

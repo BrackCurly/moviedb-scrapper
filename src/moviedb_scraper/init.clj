@@ -2,7 +2,7 @@
   (:require [clojurewerkz.neocons.rest :as nr]
             [clojurewerkz.neocons.rest.nodes :as nn]
             [clojurewerkz.neocons.rest.labels :as nl]
-            [clojurewerkz.neocons.rest.constraints :as nc]
+            [clojurewerkz.neocons.rest.relationships :as nrl]
             [clj-time.format :as format]
             [clj-time.coerce :as coerce]))
 
@@ -10,8 +10,8 @@
 
 (defn- parse-date [s]
   (->> s
-      (format/parse (format/formatters :year-month-day ))
-      (coerce/to-long)))
+       (format/parse (format/formatters :year-month-day ))
+       (coerce/to-long)))
 
 (defn- date-field [s]
   (if (and (not= s "") (not (nil? s)))
@@ -24,8 +24,8 @@
 
 (defn- clean-map [props]
   (->> props
-   (remove (fn [[_ v]] (nil? v)))
-   (into {})))
+       (remove (fn [[_ v]] (nil? v)))
+       (into {})))
 
 (defn create-node [label {id :mdb_id :as props}]
   (if (nil? id) (throw (Exception. "Can't create node without :mdb_id")))
@@ -73,12 +73,48 @@
 
 (defn create-company [data]
   (create-node "Company" {:description (:description data)
-                         :headquarters (:headquarters data)
-                         :homepage (:homepage data)
-                         :mdb_id (:id data)
-                         :logo_path (:logo_path data)
-                         :name (:name data)}))
+                          :headquarters (:headquarters data)
+                          :homepage (:homepage data)
+                          :mdb_id (:id data)
+                          :logo_path (:logo_path data)
+                          :name (:name data)}))
+
+(defn create-language [data]
+  (create-node "Language" {:name (:name data)
+                           :mdb_id (:iso_639_1 data)}))
+
+(defn create-country [data]
+  (create-node "Country" {:name (:name data)
+                          :mdb_id (:iso_3166_1 data)}))
 
 (defn create-keyword [data]
   (create-node "Keyword" {:name (:name data)
-                         :mdb_id (:id data)}))
+                          :mdb_id (:id data)}))
+
+(defn create-genre [data]
+  (create-node "Genre" {:name (:name data)
+                        :mdb_id (:id data)}))
+
+(defn- create-rels
+  ([node nodes rel] (create-rels node nodes rel false))
+  ([node nodes rel inverse]
+     (dorun (for [node-i nodes]
+              (if inverse
+                (nrl/create conn node-i node rel)
+                (nrl/create conn node node-i rel))))))
+
+(defn add-movie [{companies :production_companies
+                  countries :production_countries
+                  languages :spoken_languages
+                  genres :genres
+                  :as data}]
+  (let [movie-node (create-movie data)
+        company-nodes (doall (map create-company companies))
+        country-nodes (doall (map create-country countries))
+        language-nodes (doall (map create-language languages))
+        genre-nodes (doall (map create-genre genres))]
+        (create-rels movie-node company-nodes :PRODUCES true)
+        (create-rels movie-node country-nodes :PRODUCED_IN)
+        (create-rels movie-node language-nodes :LANGUAGE_SPOKEN)
+        (create-rels movie-node genre-nodes :HAS_GENRE)
+        movie-node))
